@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>wangEditor demo list</title>
+    <style type="text/css">
+        .body {
+            width: 800px;
+            margin: 0 auto 0 auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="body">
+        <p>可访问 <a href="http://www.wangeditor.com/" target="_blank">wangEditor 官网</a> 了解更多内容</p>
+        <div id="div1">
+            <p>欢迎使用 <b>wangEditor</b> 富文本编辑器</p>
+        </div>
+    </div>
+
+    <!-- 引用js -->
+    <script type="text/javascript" src="/wangEditor.js"></script>
+    <script type="text/javascript">
+        var E = window.wangEditor
+        var editor = new E('#div1')
+        editor.customConfig.menus = [ // menu配置
+            'head', // 标题
+            'bold', // 粗体
+            'fontSize', // 字号
+            'italic', // 斜体
+            'underline', // 下划线
+            'strikeThrough', // 删除线
+            'foreColor', // 文字颜色
+            'backColor', // 背景颜色
+            'justify', // 对齐方式
+            'code', // 插入代码,
+            'image', // 插入图片,
+            'link', // 插入链接
+            'undo', // 撤销
+            'redo' // 重复
+        ];
+        editor.customConfig.zIndex = 100; // 编辑器menu z-index值
+        editor.customConfig.uploadImgMaxLength = 5; // 限制一次最多上传 5 张图片
+        editor.customConfig.uploadImgMaxSize = 3 * 1024 * 1024; // 将图片大小限制为 3M
+        editor.create()
+    </script>
+</body>
+</html>
