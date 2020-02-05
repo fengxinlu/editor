@@ -34,7 +34,7 @@ gulp.task('css', () => {
             cssgrace
         ]))
         // 将 css 引用的字体文件转换为 base64 格式
-        .pipe(gulpReplace( /'fonts\/w-e-icon\..+?'/gm, function (fontFile) {
+        .pipe(gulpReplace( /'fonts\/iconfont\..+?'/gm, function (fontFile) {
             // fontFile 例如 'fonts/w-e-icon.eot?paxlku'
             fontFile = fontFile.slice(0, -1).slice(1)
             fontFile = fontFile.split('?')[0]

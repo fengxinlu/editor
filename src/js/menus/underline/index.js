@@ -8,7 +8,7 @@ function Underline(editor) {
     this.editor = editor
     this.$elem = $(
         `<div class="w-e-menu">
-            <i class="w-e-icon-underline"></i>
+            <i class="icon w-e-icon w-e-icon-underline"></i>
         </div>`
     )
     this.type = 'click'

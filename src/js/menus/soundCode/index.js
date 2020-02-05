@@ -11,7 +11,7 @@ function SoundCode(editor) {
     this.editor = editor
     this.$elem = $(
         `<div class="w-e-menu">
-            源码
+            <i class="icon w-e-icon w-e-icon-sound-code"></i>
         </div>`
     )
     this.type = 'click'

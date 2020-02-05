@@ -8,7 +8,7 @@ function Italic(editor) {
     this.editor = editor
     this.$elem = $(
         `<div class="w-e-menu">
-            <i class="w-e-icon-italic"></i>
+            <i class="icon w-e-icon w-e-icon-italic"></i>
         </div>`
     )
     this.type = 'click'
