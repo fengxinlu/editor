@@ -2081,7 +2081,7 @@ Code.prototype = {
     // 插入代码
     _insertCode: function _insertCode(value) {
         var editor = this.editor;
-        editor.cmd.do('insertHTML', '<pre><code>' + value + '</code></pre><p><br></p>');
+        editor.cmd.do('insertHTML', '<pre><code>' + value + '</code></pre><p class="p"><br></p>');
     },
 
     // 更新代码
@@ -3100,7 +3100,7 @@ function getPasteHtml(e, filterStyle, ignoreImg) {
         pasteHtml = clipboardData.getData('text/html');
     }
     if (!pasteHtml && pasteText) {
-        pasteHtml = '<p>' + replaceHtmlSymbol(pasteText) + '</p>';
+        pasteHtml = '<p class="p">' + replaceHtmlSymbol(pasteText) + '</p>';
     }
     if (!pasteHtml) {
         return;
@@ -3113,9 +3113,15 @@ function getPasteHtml(e, filterStyle, ignoreImg) {
     }
 
     // 过滤无用标签
-    pasteHtml = pasteHtml.replace(/<(meta|script|link).+?>/igm, '');
+    pasteHtml = pasteHtml.replace(/<(meta|script|link|style).+?>/igm, '');
+    pasteHtml = pasteHtml.replace(/<style>[\w\W\r\n]*?<\/style>/gmi, '');
+    pasteHtml = pasteHtml.replace(/<w:sdtpr[\w\W\r\n]*?<\/w:sdtpr>/gmi, '');
+    pasteHtml = pasteHtml.replace(/<o:p>[\w\W\r\n]*?<\/o:p>/gmi, '');
+    // pasteHtml = pasteHtml.replace(/<spantimes[\w\W\r\n]*?<\/spantimes>/gmi, '')
+    // pasteHtml = pasteHtml.replace(/spantimes/gmi, '444')
     // 去掉注释
-    pasteHtml = pasteHtml.replace(/<!--.*?-->/mg, '');
+    // pasteHtml = pasteHtml.replace(/<!--.*?-->/mg, '')
+    pasteHtml = pasteHtml.replace(/<!--[\w\W\r\n]*?-->/gmi, '');
     // 过滤 data-xxx 属性
     pasteHtml = pasteHtml.replace(/\s?data-.+?=('|").+?('|")/igm, '');
 
@@ -3222,7 +3228,7 @@ Text.prototype = {
 
     // 清空内容
     clear: function clear() {
-        this.html('<p><br></p>');
+        this.html('<p class="p"><br></p>');
     },
 
     // 获取 设置 html
@@ -3261,7 +3267,7 @@ Text.prototype = {
             text = text.replace(/\u200b/gm, '');
             return text;
         } else {
-            $textElem.text('<p>' + val + '</p>');
+            $textElem.text('<p class="p">' + val + '</p>');
 
             // 初始化选取，将光标定位到内容尾部
             editor.initSelection();
@@ -3333,7 +3339,7 @@ Text.prototype = {
         var $textElem = editor.$textElem;
 
         function insertEmptyP($selectionElem) {
-            var $p = $('<p><br></p>');
+            var $p = $('<p class="p"><br></p>');
             $p.insertBefore($selectionElem);
             editor.selection.createRangeByElem($p, true);
             editor.selection.restoreSelection();
@@ -3405,7 +3411,7 @@ Text.prototype = {
             if (editor._willBreakCode === true) {
                 // 此时可以跳出代码块
                 // 插入 <p> ，并将选取定位到 <p>
-                var $p = $('<p><br></p>');
+                var $p = $('<p class="p"><br></p>');
                 $p.insertAfter($parentElem);
                 editor.selection.createRangeByElem($p, true);
                 editor.selection.restoreSelection();
@@ -3460,7 +3466,7 @@ Text.prototype = {
                 return;
             }
             var txtHtml = $textElem.html().toLowerCase().trim();
-            if (txtHtml === '<p><br></p>') {
+            if (txtHtml === '<p class="p"><br></p>') {
                 // 最后剩下一个空行，就不再删除了
                 e.preventDefault();
                 return;
@@ -3477,7 +3483,7 @@ Text.prototype = {
             // firefox 时用 txtHtml === '<br>' 判断，其他用 !txtHtml 判断
             if (!txtHtml || txtHtml === '<br>') {
                 // 内容空了
-                $p = $('<p><br/></p>');
+                $p = $('<p class="p"><br/></p>');
                 $textElem.html(''); // 一定要先清空，否则在 firefox 下有问题
                 $textElem.append($p);
                 editor.selection.createRangeByElem($p, false, true);
@@ -3543,7 +3549,7 @@ Text.prototype = {
                     // 用户自定义过滤处理粘贴内容
                     pasteText = '' + (pasteTextHandle(pasteText) || '');
                 }
-                editor.cmd.do('insertHTML', '<p>' + pasteText + '</p>');
+                editor.cmd.do('insertHTML', '<p class="p">' + pasteText + '</p>');
                 return;
             }
 
@@ -3572,7 +3578,7 @@ Text.prototype = {
                     // 用户自定义过滤处理粘贴内容
                     pasteText = '' + (pasteTextHandle(pasteText) || '');
                 }
-                editor.cmd.do('insertHTML', '<p>' + pasteText + '</p>');
+                editor.cmd.do('insertHTML', '<p class="p">' + pasteText + '</p>');
             }
         });
 
@@ -4474,7 +4480,7 @@ Editor.prototype = {
         if ($children && $children.length) {
             $textElem.append($children);
         } else {
-            $textElem.append($('<p><br></p>'));
+            $textElem.append($('<p class="p"><br></p>'));
         }
 
         // 编辑区域加入DOM
@@ -4588,7 +4594,7 @@ Editor.prototype = {
         var $children = $textElem.children();
         if (!$children.length) {
             // 如果编辑器区域无内容，添加一个空行，重新设置选区
-            $textElem.append($('<p><br></p>'));
+            $textElem.append($('<p class="p"><br></p>'));
             this.initSelection();
             return;
         }
@@ -4601,7 +4607,7 @@ Editor.prototype = {
             var nodeName = $last.getNodeName();
             if (html !== '<br>' && html !== '<br\/>' || nodeName !== 'P') {
                 // 最后一个元素不是 <p><br></p>，添加一个空行，重新设置选区
-                $textElem.append($('<p><br></p>'));
+                $textElem.append($('<p class="p"><br></p>'));
                 this.initSelection();
                 return;
             }

@@ -30,7 +30,7 @@ export function getPasteHtml(e, filterStyle, ignoreImg) {
         pasteHtml = clipboardData.getData('text/html')
     }
     if (!pasteHtml && pasteText) {
-        pasteHtml = '<p>' + replaceHtmlSymbol(pasteText) + '</p>'
+        pasteHtml = '<p class="p">' + replaceHtmlSymbol(pasteText) + '</p>'
     }
     if (!pasteHtml) {
         return
@@ -43,9 +43,15 @@ export function getPasteHtml(e, filterStyle, ignoreImg) {
     }
 
     // 过滤无用标签
-    pasteHtml = pasteHtml.replace(/<(meta|script|link).+?>/igm, '')
+    pasteHtml = pasteHtml.replace(/<(meta|script|link|style).+?>/igm, '')
+    pasteHtml = pasteHtml.replace(/<style>[\w\W\r\n]*?<\/style>/gmi, '')
+    pasteHtml = pasteHtml.replace(/<w:sdtpr[\w\W\r\n]*?<\/w:sdtpr>/gmi, '')
+    pasteHtml = pasteHtml.replace(/<o:p>[\w\W\r\n]*?<\/o:p>/gmi, '')
+    // pasteHtml = pasteHtml.replace(/<spantimes[\w\W\r\n]*?<\/spantimes>/gmi, '')
+    // pasteHtml = pasteHtml.replace(/spantimes/gmi, '444')
     // 去掉注释
-    pasteHtml = pasteHtml.replace(/<!--.*?-->/mg, '')
+    // pasteHtml = pasteHtml.replace(/<!--.*?-->/mg, '')
+    pasteHtml = pasteHtml.replace(/<!--[\w\W\r\n]*?-->/gmi, '')
     // 过滤 data-xxx 属性
     pasteHtml = pasteHtml.replace(/\s?data-.+?=('|").+?('|")/igm, '')
 

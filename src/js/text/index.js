@@ -64,7 +64,7 @@ Text.prototype = {
 
     // 清空内容
     clear: function () {
-        this.html('<p><br></p>')
+        this.html('<p class="p"><br></p>')
     },
 
     // 获取 设置 html
@@ -103,7 +103,7 @@ Text.prototype = {
             text = text.replace(/\u200b/gm, '')
             return text
         } else {
-            $textElem.text(`<p>${val}</p>`)
+            $textElem.text(`<p class="p">${val}</p>`)
 
             // 初始化选取，将光标定位到内容尾部
             editor.initSelection()
@@ -175,7 +175,7 @@ Text.prototype = {
         const $textElem = editor.$textElem
 
         function insertEmptyP ($selectionElem) {
-            const $p = $('<p><br></p>')
+            const $p = $('<p class="p"><br></p>')
             $p.insertBefore($selectionElem)
             editor.selection.createRangeByElem($p, true)
             editor.selection.restoreSelection()
@@ -247,7 +247,7 @@ Text.prototype = {
             if (editor._willBreakCode === true) {
                 // 此时可以跳出代码块
                 // 插入 <p> ，并将选取定位到 <p>
-                const $p = $('<p><br></p>')
+                const $p = $('<p class="p"><br></p>')
                 $p.insertAfter($parentElem)
                 editor.selection.createRangeByElem($p, true)
                 editor.selection.restoreSelection()
@@ -302,7 +302,7 @@ Text.prototype = {
                 return
             }
             const txtHtml = $textElem.html().toLowerCase().trim()
-            if (txtHtml === '<p><br></p>') {
+            if (txtHtml === '<p class="p"><br></p>') {
                 // 最后剩下一个空行，就不再删除了
                 e.preventDefault()
                 return
@@ -319,7 +319,7 @@ Text.prototype = {
             // firefox 时用 txtHtml === '<br>' 判断，其他用 !txtHtml 判断
             if (!txtHtml || txtHtml === '<br>') {
                 // 内容空了
-                $p = $('<p><br/></p>')
+                $p = $('<p class="p"><br/></p>')
                 $textElem.html('') // 一定要先清空，否则在 firefox 下有问题
                 $textElem.append($p)
                 editor.selection.createRangeByElem($p, false, true)
@@ -386,7 +386,7 @@ Text.prototype = {
                     // 用户自定义过滤处理粘贴内容
                     pasteText = '' + (pasteTextHandle(pasteText) || '')
                 }
-                editor.cmd.do('insertHTML', `<p>${pasteText}</p>`)
+                editor.cmd.do('insertHTML', `<p class="p">${pasteText}</p>`)
                 return
             }
 
@@ -415,7 +415,7 @@ Text.prototype = {
                     // 用户自定义过滤处理粘贴内容
                     pasteText = '' + (pasteTextHandle(pasteText) || '')
                 }
-                editor.cmd.do('insertHTML', `<p>${pasteText}</p>`)
+                editor.cmd.do('insertHTML', `<p class="p">${pasteText}</p>`)
             }
         })
 

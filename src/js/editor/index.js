@@ -109,7 +109,7 @@ Editor.prototype = {
         if ($children && $children.length) {
             $textElem.append($children)
         } else {
-            $textElem.append($('<p><br></p>'))
+            $textElem.append($('<p class="p"><br></p>'))
         }
 
         // 编辑区域加入DOM
@@ -224,7 +224,7 @@ Editor.prototype = {
         const $children = $textElem.children()
         if (!$children.length) {
             // 如果编辑器区域无内容，添加一个空行，重新设置选区
-            $textElem.append($('<p><br></p>'))
+            $textElem.append($('<p class="p"><br></p>'))
             this.initSelection()
             return
         }
@@ -237,7 +237,7 @@ Editor.prototype = {
             const nodeName = $last.getNodeName()
             if ((html !== '<br>' && html !== '<br\/>') || nodeName !== 'P') {
                 // 最后一个元素不是 <p><br></p>，添加一个空行，重新设置选区
-                $textElem.append($('<p><br></p>'))
+                $textElem.append($('<p class="p"><br></p>'))
                 this.initSelection()
                 return
             }
