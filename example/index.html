@@ -24,6 +24,7 @@
         var E = window.wangEditor
         var editor = new E('#div1')
         editor.customConfig.menus = [ // menu配置
+            'soundCode', // 源码
             'head', // 标题
             'bold', // 粗体
             'fontSize', // 字号
@@ -37,7 +38,7 @@
             'image', // 插入图片,
             'link', // 插入链接
             'undo', // 撤销
-            'redo' // 重复
+            'redo', // 重复
         ];
         editor.customConfig.zIndex = 100; // 编辑器menu z-index值
         editor.customConfig.uploadImgMaxLength = 5; // 限制一次最多上传 5 张图片

@@ -14,6 +14,8 @@ function SoundCode(editor) {
             源码
         </div>`
     )
+    this.type = 'click'
+
     // 当前是否 active 状态
     this._active = false
 }
@@ -21,9 +23,34 @@ function SoundCode(editor) {
 // 原型
 SoundCode.prototype = {
     constructor: SoundCode,
+
     onClick: function(e) {
         const editor = this.editor
-        console.log(editor, 'editor-----')
+        const $textElem = editor.$textElem
+        const $soundCodeElem = editor.$soundCodeElem // 获取源码编辑器
+        const htmlEditFlag = $soundCodeElem[0].style.display // 记录编辑器是否处于编辑状态
+        const editorContent = editor.txt.html() // 获取文本源码
+        const editorValue = $soundCodeElem[0].value // 获取源码容器内源码value(string)
+        if (htmlEditFlag === 'none') {
+            $soundCodeElem[0].value = editorContent
+            $soundCodeElem.css('display', 'block')
+            $textElem.css('display', 'none')
+            this._menusControl(false)
+        } else {
+            editor.txt.html(editorValue)
+            $soundCodeElem.css('display', 'none')
+            $textElem.css('display', 'block')
+            this._menusControl(true)
+        }
+    },
+
+    _menusControl: function (disable) { // 控制menu显隐
+        const editor = this.editor
+        const { menus: { menus } } = editor
+        Object.keys(menus).map((item) => {
+            const menuItem = menus[item].$elem
+            item !== 'soundCode' && menuItem.css('visibility', !disable ? 'hidden' : 'visible')
+        })
     }
 }
 

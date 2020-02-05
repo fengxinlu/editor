@@ -65,5 +65,8 @@ MenuConstructors.video = Video
 import Image from './img/index.js'
 MenuConstructors.image = Image
 
+import SoundCode from './soundCode/index.js'
+MenuConstructors.soundCode = SoundCode
+
 // 吐出所有菜单集合
 export default MenuConstructors

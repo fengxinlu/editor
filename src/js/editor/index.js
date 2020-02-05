@@ -66,7 +66,7 @@ Editor.prototype = {
         const zIndex = config.zIndex
 
         // 定义变量
-        let $toolbarElem, $textContainerElem, $textElem, $children
+        let $toolbarElem, $textContainerElem, $textElem, $soundCodeElem, $children
 
         if (textSelector == null) {
             // 只传入一个参数，即是容器的选择器或元素，toolbar 和 text 的元素自行创建
@@ -98,7 +98,13 @@ Editor.prototype = {
         $textElem.attr('contenteditable', 'true')
                 .css('width', '100%')
                 .css('height', '100%')
-
+        // 源码编辑区域
+        $soundCodeElem = $('<textarea></textarea>')
+        $soundCodeElem.css('display', 'none')
+                .css('width', '100%')
+                .css('height', '100%')
+                .css('outline', 'none')
+                .css('lineHeight', '2.5')
         // 初始化编辑区域内容
         if ($children && $children.length) {
             $textElem.append($children)
@@ -108,12 +114,14 @@ Editor.prototype = {
 
         // 编辑区域加入DOM
         $textContainerElem.append($textElem)
+        $textContainerElem.append($soundCodeElem)
 
         // 设置通用的 class
         $toolbarElem.addClass('w-e-toolbar')
         $textContainerElem.addClass('w-e-text-container')
         $textContainerElem.css('z-index', zIndex)
         $textElem.addClass('w-e-text')
+        $soundCodeElem.addClass('w-e-soundCode')
 
         // 添加 ID
         const toolbarElemId = getRandom('toolbar-elem')
@@ -125,6 +133,7 @@ Editor.prototype = {
         this.$toolbarElem = $toolbarElem
         this.$textContainerElem = $textContainerElem
         this.$textElem = $textElem
+        this.$soundCodeElem = $soundCodeElem
         this.toolbarElemId = toolbarElemId
         this.textElemId = textElemId
 

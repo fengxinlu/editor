@@ -2851,6 +2851,55 @@ Image.prototype = {
 };
 
 /*
+    menu - code
+*/
+// 构造函数
+function SoundCode(editor) {
+    this.editor = editor;
+    this.$elem = $('<div class="w-e-menu">\n            \u6E90\u7801\n        </div>');
+    this.type = 'click';
+
+    // 当前是否 active 状态
+    this._active = false;
+}
+
+// 原型
+SoundCode.prototype = {
+    constructor: SoundCode,
+
+    onClick: function onClick(e) {
+        var editor = this.editor;
+        var $textElem = editor.$textElem;
+        var $soundCodeElem = editor.$soundCodeElem; // 获取源码编辑器
+        var htmlEditFlag = $soundCodeElem[0].style.display; // 记录编辑器是否处于编辑状态
+        var editorContent = editor.txt.html(); // 获取文本源码
+        var editorValue = $soundCodeElem[0].value; // 获取源码容器内源码value(string)
+        if (htmlEditFlag === 'none') {
+            $soundCodeElem[0].value = editorContent;
+            $soundCodeElem.css('display', 'block');
+            $textElem.css('display', 'none');
+            this._menusControl(false);
+        } else {
+            editor.txt.html(editorValue);
+            $soundCodeElem.css('display', 'none');
+            $textElem.css('display', 'block');
+            this._menusControl(true);
+        }
+    },
+
+    _menusControl: function _menusControl(disable) {
+        // 控制menu显隐
+        var editor = this.editor;
+        var menus = editor.menus.menus;
+
+        Object.keys(menus).map(function (item) {
+            var menuItem = menus[item].$elem;
+            item !== 'soundCode' && menuItem.css('visibility', !disable ? 'hidden' : 'visible');
+        });
+    }
+};
+
+/*
     所有菜单的汇总
 */
 
@@ -2896,6 +2945,8 @@ MenuConstructors.table = Table;
 MenuConstructors.video = Video;
 
 MenuConstructors.image = Image;
+
+MenuConstructors.soundCode = SoundCode;
 
 /*
     菜单集合
@@ -4388,6 +4439,7 @@ Editor.prototype = {
         var $toolbarElem = void 0,
             $textContainerElem = void 0,
             $textElem = void 0,
+            $soundCodeElem = void 0,
             $children = void 0;
 
         if (textSelector == null) {
@@ -4415,7 +4467,9 @@ Editor.prototype = {
         // 编辑区域
         $textElem = $('<div></div>');
         $textElem.attr('contenteditable', 'true').css('width', '100%').css('height', '100%');
-
+        // 源码编辑区域
+        $soundCodeElem = $('<textarea></textarea>');
+        $soundCodeElem.css('display', 'none').css('width', '100%').css('height', '100%').css('outline', 'none').css('lineHeight', '2.5');
         // 初始化编辑区域内容
         if ($children && $children.length) {
             $textElem.append($children);
@@ -4425,12 +4479,14 @@ Editor.prototype = {
 
         // 编辑区域加入DOM
         $textContainerElem.append($textElem);
+        $textContainerElem.append($soundCodeElem);
 
         // 设置通用的 class
         $toolbarElem.addClass('w-e-toolbar');
         $textContainerElem.addClass('w-e-text-container');
         $textContainerElem.css('z-index', zIndex);
         $textElem.addClass('w-e-text');
+        $soundCodeElem.addClass('w-e-soundCode');
 
         // 添加 ID
         var toolbarElemId = getRandom('toolbar-elem');
@@ -4442,6 +4498,7 @@ Editor.prototype = {
         this.$toolbarElem = $toolbarElem;
         this.$textContainerElem = $textContainerElem;
         this.$textElem = $textElem;
+        this.$soundCodeElem = $soundCodeElem;
         this.toolbarElemId = toolbarElemId;
         this.textElemId = textElemId;
 
