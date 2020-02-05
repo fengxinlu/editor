@@ -104,7 +104,7 @@ Editor.prototype = {
                 .css('width', '100%')
                 .css('height', '100%')
                 .css('outline', 'none')
-                .css('lineHeight', '2.5')
+                .css('line-height', '2.5')
         // 初始化编辑区域内容
         if ($children && $children.length) {
             $textElem.append($children)
