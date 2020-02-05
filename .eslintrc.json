@@ -13,25 +13,25 @@
     },
     "rules": {
         "no-console":0,
-        "indent": [
-            "error",
-            4
-        ],
+        // "indent": [
+        //     "error",
+        //     4
+        // ],
         "linebreak-style": [
             "error",
             "unix"
         ],
-        "quotes": [
-            "error",
-            "single",
-            {
-                "allowTemplateLiterals": true
-            }
-        ],
-        "semi": [
-            "error",
-            "never"
-        ],
+        // "quotes": [
+        //     "error",
+        //     "single",
+        //     {
+        //         "allowTemplateLiterals": true
+        //     }
+        // ],
+        // "semi": [
+        //     "error",
+        //     "never"
+        // ],
         "no-unused-vars": 0,
         "no-debugger": 0
     }
