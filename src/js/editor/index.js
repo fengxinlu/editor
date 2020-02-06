@@ -64,6 +64,7 @@ Editor.prototype = {
 
         const config = this.config
         const zIndex = config.zIndex
+        const that = this
 
         // 定义变量
         let $toolbarElem, $textContainerElem, $textElem, $soundCodeElem, $children
@@ -105,6 +106,13 @@ Editor.prototype = {
                 .css('height', '100%')
                 .css('outline', 'none')
                 .css('line-height', '2.5')
+
+        // 监听源码编辑区域事件
+        $soundCodeElem[0].addEventListener('blur', function () { // 源码编辑器失焦时触发
+            var editorValue = $soundCodeElem[0].value; // 获取源码容器内源码value(string)
+            that.txt.html(editorValue)
+        }, true);
+                
         // 初始化编辑区域内容
         if ($children && $children.length) {
             $textElem.append($children)

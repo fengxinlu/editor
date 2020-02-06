@@ -338,7 +338,7 @@
   height: 1px;
 }
 .w-e-text {
-  padding: 0 10px;
+  padding: 10px;
   overflow-y: scroll;
 }
 .w-e-text p,
@@ -349,7 +349,6 @@
 .w-e-text h5,
 .w-e-text table,
 .w-e-text pre {
-  margin: 10px 0;
   line-height: 1.5;
 }
 .w-e-text ul,
