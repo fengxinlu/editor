@@ -68,5 +68,14 @@ MenuConstructors.image = Image
 import SoundCode from './soundCode/index.js'
 MenuConstructors.soundCode = SoundCode
 
+import LineHeight from './lineHeight/index.js'
+MenuConstructors.lineHeight = LineHeight
+
+import ClearFormat from './clearFormat/index.js'
+MenuConstructors.clearFormat = ClearFormat
+
+import Iframe from './iframe/index.js'
+MenuConstructors.iframe = Iframe
+
 // 吐出所有菜单集合
 export default MenuConstructors

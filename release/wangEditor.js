@@ -800,189 +800,6 @@ function isFunction(fn) {
     return typeof fn === 'function';
 }
 
-/**
- * 把cm／pt为单位的值转换为px为单位的值
- * @method transUnitToPx
- * @param { String } 待转换的带单位的字符串
- * @return { String } 转换为px为计量单位的值的字符串
- * @example
- * ```javascript
- *
- * //output: 500px
- * console.log( UE.utils.transUnitToPx( '20cm' ) );
- *
- * //output: 27px
- * console.log( UE.utils.transUnitToPx( '20pt' ) );
- *
- * ```
- */
-function transUnitToPx(val) {
-    if (!/(pt|cm)/.test(val)) {
-        return val;
-    }
-    var unit;
-    val.replace(/([\d.]+)(\w+)/, function (str, v, u) {
-        val = v;
-        unit = u;
-    });
-    switch (unit) {
-        case 'cm':
-            val = parseFloat(val) * 25;
-            break;
-        case 'pt':
-            val = Math.round(parseFloat(val) * 96 / 72);
-    }
-    return val + (val ? 'px' : '');
-}
-
-// 过滤word冗余代码及无用属性
-function filterWord(html) {
-    //是否是word过来的内容
-    function isWordDocument(str) {
-        return (/(class="?Mso|style="[^"]*\bmso\-|w:WordDocument|<(v|o):|lang=)/ig.test(str)
-        );
-    }
-    //去掉小数
-    function transUnit(v) {
-        v = v.replace(/[\d.]+\w+/g, function (m) {
-            return transUnitToPx(m);
-        });
-        return v;
-    }
-
-    function filterPasteWord(str) {
-        return str.replace(/[\t\r\n]+/g, ' ').replace(/<!--[\s\S]*?-->/ig, '')
-        //转换图片
-        .replace(/<v:shape [^>]*>[\s\S]*?.<\/v:shape>/gi, function (str) {
-            //opera能自己解析出image所这里直接返回空
-            // if(browser.opera){
-            //     return ''
-            // }
-            try {
-                //有可能是bitmap占为图，无用，直接过滤掉，主要体现在粘贴excel表格中
-                if (/Bitmap/i.test(str)) {
-                    return '';
-                }
-                var width = str.match(/width:([ \d.]*p[tx])/i)[1],
-                    height = str.match(/height:([ \d.]*p[tx])/i)[1],
-                    src = str.match(/src=\s*"([^"]*)"/i)[1];
-                return '<img width="' + transUnit(width) + '" height="' + transUnit(height) + '" src="' + src + '" />';
-            } catch (e) {
-                return '';
-            }
-        })
-        //针对wps添加的多余标签处理
-        .replace(/<\/?div[^>]*>/g, '')
-        //去掉多余的属性
-        .replace(/v:\w+=(["']?)[^'"]+\1/g, '').replace(/<(!|script[^>]*>.*?<\/script(?=[>\s])|\/?(\?xml(:\w+)?|xml|meta|link|style|\w+:\w+)(?=[\s\/>]))[^>]*>/gi, '').replace(/<p [^>]*class="?MsoHeading"?[^>]*>(.*?)<\/p>/gi, '<p><strong>$1</strong></p>')
-        //去掉多余的属性
-        .replace(/\s+(class|lang|align)\s*=\s*(['"]?)([\w-]+)\2/ig, function (str, name, marks, val) {
-            //保留list的标示
-            return name == 'class' && val == 'MsoListParagraph' ? str : '';
-        })
-        //清除多余的font/span不能匹配&nbsp;有可能是空格
-        .replace(/<(font|span)[^>]*>(\s*)<\/\1>/gi, function (a, b, c) {
-            return c.replace(/[\t\r\n ]+/g, ' ');
-        })
-        //处理style的问题
-        .replace(/(<[a-z][^>]*)\sstyle=(["'])([^\2]*?)\2/gi, function (str, tag, tmp, style) {
-            var n = [],
-                s = style.replace(/^\s+|\s+$/, '').replace(/&#39;/g, '\'').replace(/&quot;/gi, "'").replace(/[\d.]+(cm|pt)/g, function (str) {
-                return transUnitToPx(str);
-            }).split(/;\s*/g);
-
-            for (var i = 0, v; v = s[i]; i++) {
-
-                var name,
-                    value,
-                    parts = v.split(":");
-
-                if (parts.length == 2) {
-                    name = parts[0].toLowerCase();
-                    value = parts[1].toLowerCase();
-                    if (/^(background)\w*/.test(name) && value.replace(/(initial|\s)/g, '').length == 0 || /^(margin)\w*/.test(name) && /^0\w+$/.test(value)) {
-                        continue;
-                    }
-
-                    switch (name) {
-                        case "mso-padding-alt":
-                        case "mso-padding-top-alt":
-                        case "mso-padding-right-alt":
-                        case "mso-padding-bottom-alt":
-                        case "mso-padding-left-alt":
-                        case "mso-margin-alt":
-                        case "mso-margin-top-alt":
-                        case "mso-margin-right-alt":
-                        case "mso-margin-bottom-alt":
-                        case "mso-margin-left-alt":
-                        case "mso-height":
-                        case "mso-width":
-                        case "mso-vertical-align-alt":
-                            //trace:1819 ff下会解析出padding在table上
-                            if (!/<table/.test(tag)) n[i] = name.replace(/^mso-|-alt$/g, "") + ":" + transUnit(value);
-                            continue;
-                        case "horiz-align":
-                            n[i] = "text-align:" + value;
-                            continue;
-
-                        case "vert-align":
-                            n[i] = "vertical-align:" + value;
-                            continue;
-
-                        case "font-color":
-                        case "mso-foreground":
-                            n[i] = "color:" + value;
-                            continue;
-
-                        case "mso-background":
-                        case "mso-highlight":
-                            n[i] = "background:" + value;
-                            continue;
-
-                        case "mso-default-height":
-                            n[i] = "min-height:" + transUnit(value);
-                            continue;
-
-                        case "mso-default-width":
-                            n[i] = "min-width:" + transUnit(value);
-                            continue;
-
-                        case "mso-padding-between-alt":
-                            n[i] = "border-collapse:separate;border-spacing:" + transUnit(value);
-                            continue;
-
-                        case "text-line-through":
-                            if (value == "single" || value == "double") {
-                                n[i] = "text-decoration:line-through";
-                            }
-                            continue;
-                        case "mso-zero-height":
-                            if (value == "yes") {
-                                n[i] = "display:none";
-                            }
-                            continue;
-                        //                                case 'background':
-                        //                                    break;
-                        case 'margin':
-                            if (!/[1-9]/.test(value)) {
-                                continue;
-                            }
-
-                    }
-
-                    if (/^(mso|column|font-emph|lang|layout|line-break|list-image|nav|panose|punct|row|ruby|sep|size|src|tab-|table-border|text-(?:decor|trans)|top-bar|version|vnd|word-break)/.test(name) || /text\-indent|padding|margin/.test(name) && /\-[\d.]+/.test(value)) {
-                        continue;
-                    }
-
-                    n[i] = name + ":" + parts[1];
-                }
-            }
-            return tag + (n.length ? ' style="' + n.join(';').replace(/;{2,}/g, ';') + '"' : '');
-        });
-    }
-    return isWordDocument(html) ? filterPasteWord(html) : html;
-}
-
 /*
     bold-menu
 */
@@ -3034,7 +2851,7 @@ Image.prototype = {
 };
 
 /*
-    menu - code
+    menu - soundCode
 */
 // 构造函数
 function SoundCode(editor) {
@@ -3079,6 +2896,291 @@ SoundCode.prototype = {
             var menuItem = menus[item].$elem;
             item !== 'soundCode' && menuItem.css('visibility', !disable ? 'hidden' : 'visible');
         });
+    }
+};
+
+/*
+**设置选中文字样式
+*/
+
+// 用于记录浏览器的类型
+var browser = {};
+var ua = navigator.userAgent.toLowerCase();
+
+browser.msie = /msie ([\d.]+)/.test(ua);
+browser.firefox = /firefox\/([\d.]+)/.test(ua);
+browser.chrome = /chrome\/([\d.]+)/.test(ua);
+
+// 获取多个节点的HTML
+function getInnerHtml(nodes) {
+    var builder = [];
+    for (var i = 0; i < nodes.length; i++) {
+        // if (nodes[i].nodeValue != undefined){
+        //     builder.push(nodes[i].innerHTML || nodes[i].nodeValue);
+        // }else{
+        //     if (nodes[i].textContent) builder.push(nodes[i].textContent.replace(/\</ig, function() { return "<"; }));
+        //     else if (nodes[i].nodeValue) builder.push(nodes[i].nodeValue.replace(/\</ig, function() { return "<"; }));
+        // }
+        builder.push(nodes[i].innerHTML || nodes[i].nodeValue);
+    }
+    return builder;
+}
+function SelectionRange(doc, range) {
+    // 获取选中的内容的HTML
+    this.getSelectedHtml = function () {
+        if (range == null) return '';
+
+        if (browser.msie) {
+            if (range.htmlText !== undefined) return range.htmlText;else return '';
+        } else if (browser.firefox || browser.chrome) {
+            return getInnerHtml(range.cloneContents().childNodes);
+        } else {
+            return '';
+        }
+    };
+    // 用html替换选中的内容的HTML
+    this.replace = function (html) {
+        if (range != null) {
+            if (browser.msie) {
+                if (range.pasteHTML !== undefined) {
+                    // 当前选中html可能以为某种原因（例如点击了另一个DIV）而丢失，重新选中
+                    range.select();
+                    range.pasteHTML(html);
+                    return true;
+                }
+            } else if (browser.firefox || browser.chrome) {
+                if (range.deleteContents !== undefined && range.insertNode !== undefined) {
+                    // 将文本html转换成DOM对象
+                    var temp = html;
+                    var elems = [];
+                    for (var i = 0; i < temp.length; i++) {
+                        var node = doc.createElement('p');
+                        node.innerHTML = temp[i];
+                        elems.push(node);
+                    }
+
+                    // 删除选中的节点
+                    range.deleteContents();
+                    // 将html对应的节点(即temp的所有子节点)逐个插入到range中，并从temp中删除
+                    for (var j in elems.reverse()) {
+                        temp.splice(j, 1);
+                        range.insertNode(elems[j]);
+                    }
+                    return true;
+                }
+            }
+        }
+        return false;
+    };
+}
+
+// 获取当前选中文本对应的SelectionRange对象
+function getSelectionRange(win) {
+    var range = null;
+
+    if (browser.msie) {
+        range = win.document.selection.createRange();
+        if (range.parentElement().document !== win.document) {
+            range = null;
+        }
+    } else if (browser.firefox || browser.chrome) {
+        var sel = win.getSelection();
+        if (sel.rangeCount > 0) range = sel.getRangeAt(0);else range = null;
+    }
+
+    return new SelectionRange(win.document, range);
+}
+
+// 修改选中的HTML的样式
+function setNodeStyle(doc, node, name, value) {
+    if (node.innerHTML === undefined) {
+        return node;
+    } else {
+        node.style[name] = value;
+
+        for (var i = 0; i < node.childNodes.length; i++) {
+            var cn = node.childNodes[i];
+            if (node.innerHTML !== undefined) {
+                setNodeStyle(doc, cn, name, value);
+            }
+        }
+
+        return node;
+    }
+}
+
+function setStyle(doc, html, name, value) {
+    var dom = doc.createElement('div');
+    dom.innerHTML = html;
+
+    for (var i = 0; i < dom.childNodes.length; i++) {
+        var node = dom.childNodes[i];
+        if (node.innerHTML === undefined) {
+            // 如果是文本节点，则转换转换成p
+            var span = doc.createElement('p');
+            span.style[name] = value;
+            if (node.nodeValue !== undefined) span.innerHTML = node.nodeValue.replace(/\</ig, function () {
+                return '<';
+            });else if (node.textContent !== undefined) span.innetHTML = node.textContent.replace(/\</ig, function () {
+                return '<';
+            });
+            // 替换掉文本节点
+            dom.replaceChild(span, node);
+        } else {
+            setNodeStyle(doc, node, name, value);
+        }
+    }
+    return dom.innerHTML;
+}
+
+/*
+    menu - lineHeight
+*/
+// 构造函数
+function lineHeight(editor) {
+    var _this = this;
+
+    this.editor = editor;
+    this.$elem = $('<div class="w-e-menu">\n            <i class="icon w-e-icon w-e-icon-line-height"></i>\n        </div>');
+    this.type = 'droplist';
+
+    // 当前是否 active 状态
+    this._active = false;
+
+    // 初始化 droplist
+    this.droplist = new DropList(this, {
+        width: 100,
+        $title: $('<p>设置行高</p>'),
+        type: 'list', // droplist 以列表形式展示
+        list: [{ $elem: $('<p>1</p>'), value: '1' }, { $elem: $('<p>1.5</p>'), value: '1.5' }, { $elem: $('<p>1.75</p>'), value: '1.75' }, { $elem: $('<p>2</p>'), value: '2' }, { $elem: $('<p>3</p>'), value: '3' }, { $elem: $('<p>4</p>'), value: '4' }, { $elem: $('<p>5</p>'), value: '5' }],
+        onClick: function onClick(value) {
+            // 注意 this 是指向当前的 lineHeight 对象
+            _this._command(value);
+        }
+    });
+}
+
+// 原型
+lineHeight.prototype = {
+    onstructor: lineHeight,
+
+    // 执行命令
+    _command: function _command(val) {
+        var editor = this.editor;
+        console.log(val, '111111');
+        var isSeleEmpty = editor.selection.isSelectionEmpty();
+
+        if (isSeleEmpty) {
+            // 选区是空的，插入并选中一个“空白”
+            // editor.selection.createEmptyRange()
+        }
+        editor.selection.restoreSelection();
+        this._setLineHeight(val);
+    },
+    // 设置行高
+    _setLineHeight: function _setLineHeight(val) {
+        val = val == 1 ? 'unset' : val + 'em';
+        var range = getSelectionRange(window);
+        var selectNodes = range.getSelectedHtml();
+        var targetNodes = [];
+        for (var i = 0; i < selectNodes.length; i++) {
+            var html = setStyle(document, selectNodes[i], 'lineHeight', val);
+            targetNodes.push(html);
+        }
+        range.replace(targetNodes);
+    }
+};
+
+/*
+    clearFormat-menu
+*/
+// 构造函数
+function ClearFormat(editor) {
+    this.editor = editor;
+    this.$elem = $('<div class="w-e-menu">\n            <i class="icon w-e-icon w-e-icon-format"></i>\n        </div>');
+    this.type = 'click';
+
+    // 当前是否 active 状态
+    this._active = false;
+}
+
+// 原型
+ClearFormat.prototype = {
+    constructor: ClearFormat,
+
+    onClick: function onClick(e) {
+        var editor = this.editor;
+        var editorContent = editor.txt.html(); // 获取文本源码
+        var newContent = editorContent.replace(/style=\"(.*?)\"/g, '');
+        editor.txt.html(newContent);
+    }
+};
+
+/*
+    menu - video
+*/
+// 构造函数
+function Iframe(editor) {
+    this.editor = editor;
+    this.$elem = $('<div class="w-e-menu"><i class="icon w-e-icon w-e-icon-iframe"></i></div>');
+    this.type = 'panel';
+
+    // 当前是否 active 状态
+    this._active = false;
+}
+
+// 原型
+Iframe.prototype = {
+    constructor: Iframe,
+
+    onClick: function onClick() {
+        this._createPanel();
+    },
+
+    _createPanel: function _createPanel() {
+        var _this = this;
+
+        // 创建 id
+        var textValId = getRandom('text-val');
+        var btnId = getRandom('btn');
+
+        // 创建 panel
+        var panel = new Panel(this, {
+            width: 350,
+            // 一个 panel 多个 tab
+            tabs: [{
+                // 标题
+                title: '插入Iframe',
+                // 模板
+                tpl: '<div>\n                        <input id="' + textValId + '" type="text" class="block" placeholder="http://..."/>\n                        <div class="w-e-button-container">\n                            <button id="' + btnId + '" class="right">\u63D2\u5165</button>\n                        </div>\n                    </div>',
+                // 事件绑定
+                events: [{
+                    selector: '#' + btnId,
+                    type: 'click',
+                    fn: function fn() {
+                        var $text = $('#' + textValId);
+                        var val = $text.val().trim();
+                        if (val) {
+                            _this._insert(val);
+                        }
+                        // 返回 true，表示该事件执行完之后，panel 要关闭。否则 panel 不会关闭
+                        return true;
+                    }
+                }] // first tab end
+            }] // tabs end
+        }); // panel end
+
+        // 显示 panel
+        panel.show();
+
+        // 记录属性
+        this.panel = panel;
+    },
+
+    // 插入Iframe
+    _insert: function _insert(flvSrc) {
+        var editor = this.editor;
+        editor.cmd.do('insertHTML', '<div class="flv-box"><iframe class="video_iframe" frameborder="0" src="' + flvSrc + '"></iframe></div>');
     }
 };
 
@@ -3130,6 +3232,12 @@ MenuConstructors.video = Video;
 MenuConstructors.image = Image;
 
 MenuConstructors.soundCode = SoundCode;
+
+MenuConstructors.lineHeight = lineHeight;
+
+MenuConstructors.clearFormat = ClearFormat;
+
+MenuConstructors.iframe = Iframe;
 
 /*
     菜单集合
@@ -3253,6 +3361,189 @@ Menus.prototype = {
         });
     }
 };
+
+// 过滤word冗余代码及无用属性
+function filterWord(html) {
+    //是否是word过来的内容
+    function isWordDocument(str) {
+        return (/(class="?Mso|style="[^"]*\bmso\-|w:WordDocument|<(v|o):|lang=)/ig.test(str)
+        );
+    }
+    //去掉小数
+    function transUnit(v) {
+        v = v.replace(/[\d.]+\w+/g, function (m) {
+            return transUnitToPx(m);
+        });
+        return v;
+    }
+
+    function filterPasteWord(str) {
+        return str.replace(/[\t\r\n]+/g, ' ').replace(/<!--[\s\S]*?-->/ig, '')
+        //转换图片
+        .replace(/<v:shape [^>]*>[\s\S]*?.<\/v:shape>/gi, function (str) {
+            //opera能自己解析出image所这里直接返回空
+            // if(browser.opera){
+            //     return ''
+            // }
+            try {
+                //有可能是bitmap占为图，无用，直接过滤掉，主要体现在粘贴excel表格中
+                if (/Bitmap/i.test(str)) {
+                    return '';
+                }
+                var width = str.match(/width:([ \d.]*p[tx])/i)[1],
+                    height = str.match(/height:([ \d.]*p[tx])/i)[1],
+                    src = str.match(/src=\s*"([^"]*)"/i)[1];
+                return '<img width="' + transUnit(width) + '" height="' + transUnit(height) + '" src="' + src + '" />';
+            } catch (e) {
+                return '';
+            }
+        })
+        //针对wps添加的多余标签处理
+        .replace(/<\/?div[^>]*>/g, '')
+        //去掉多余的属性
+        .replace(/v:\w+=(["']?)[^'"]+\1/g, '').replace(/<(!|script[^>]*>.*?<\/script(?=[>\s])|\/?(\?xml(:\w+)?|xml|meta|link|style|\w+:\w+)(?=[\s\/>]))[^>]*>/gi, '').replace(/<p [^>]*class="?MsoHeading"?[^>]*>(.*?)<\/p>/gi, '<p><strong>$1</strong></p>')
+        //去掉多余的属性
+        .replace(/\s+(class|lang|align)\s*=\s*(['"]?)([\w-]+)\2/ig, function (str, name, marks, val) {
+            //保留list的标示
+            return name == 'class' && val == 'MsoListParagraph' ? str : '';
+        })
+        //清除多余的font/span不能匹配&nbsp;有可能是空格
+        .replace(/<(font|span)[^>]*>(\s*)<\/\1>/gi, function (a, b, c) {
+            return c.replace(/[\t\r\n ]+/g, ' ');
+        })
+        //处理style的问题
+        .replace(/(<[a-z][^>]*)\sstyle=(["'])([^\2]*?)\2/gi, function (str, tag, tmp, style) {
+            var n = [],
+                s = style.replace(/^\s+|\s+$/, '').replace(/&#39;/g, '\'').replace(/&quot;/gi, "'").replace(/[\d.]+(cm|pt)/g, function (str) {
+                return transUnitToPx(str);
+            }).split(/;\s*/g);
+
+            for (var i = 0, v; v = s[i]; i++) {
+
+                var name,
+                    value,
+                    parts = v.split(":");
+
+                if (parts.length == 2) {
+                    name = parts[0].toLowerCase();
+                    value = parts[1].toLowerCase();
+                    if (/^(background)\w*/.test(name) && value.replace(/(initial|\s)/g, '').length == 0 || /^(margin)\w*/.test(name) && /^0\w+$/.test(value)) {
+                        continue;
+                    }
+
+                    switch (name) {
+                        case "mso-padding-alt":
+                        case "mso-padding-top-alt":
+                        case "mso-padding-right-alt":
+                        case "mso-padding-bottom-alt":
+                        case "mso-padding-left-alt":
+                        case "mso-margin-alt":
+                        case "mso-margin-top-alt":
+                        case "mso-margin-right-alt":
+                        case "mso-margin-bottom-alt":
+                        case "mso-margin-left-alt":
+                        case "mso-height":
+                        case "mso-width":
+                        case "mso-vertical-align-alt":
+                            //trace:1819 ff下会解析出padding在table上
+                            if (!/<table/.test(tag)) n[i] = name.replace(/^mso-|-alt$/g, "") + ":" + transUnit(value);
+                            continue;
+                        case "horiz-align":
+                            n[i] = "text-align:" + value;
+                            continue;
+
+                        case "vert-align":
+                            n[i] = "vertical-align:" + value;
+                            continue;
+
+                        case "font-color":
+                        case "mso-foreground":
+                            n[i] = "color:" + value;
+                            continue;
+
+                        case "mso-background":
+                        case "mso-highlight":
+                            n[i] = "background:" + value;
+                            continue;
+
+                        case "mso-default-height":
+                            n[i] = "min-height:" + transUnit(value);
+                            continue;
+
+                        case "mso-default-width":
+                            n[i] = "min-width:" + transUnit(value);
+                            continue;
+
+                        case "mso-padding-between-alt":
+                            n[i] = "border-collapse:separate;border-spacing:" + transUnit(value);
+                            continue;
+
+                        case "text-line-through":
+                            if (value == "single" || value == "double") {
+                                n[i] = "text-decoration:line-through";
+                            }
+                            continue;
+                        case "mso-zero-height":
+                            if (value == "yes") {
+                                n[i] = "display:none";
+                            }
+                            continue;
+                        //                                case 'background':
+                        //                                    break;
+                        case 'margin':
+                            if (!/[1-9]/.test(value)) {
+                                continue;
+                            }
+
+                    }
+
+                    if (/^(mso|column|font-emph|lang|layout|line-break|list-image|nav|panose|punct|row|ruby|sep|size|src|tab-|table-border|text-(?:decor|trans)|top-bar|version|vnd|word-break)/.test(name) || /text\-indent|padding|margin/.test(name) && /\-[\d.]+/.test(value)) {
+                        continue;
+                    }
+
+                    n[i] = name + ":" + parts[1];
+                }
+            }
+            return tag + (n.length ? ' style="' + n.join(';').replace(/;{2,}/g, ';') + '"' : '');
+        });
+    }
+    return isWordDocument(html) ? filterPasteWord(html) : html;
+}
+
+/**
+ * 把cm／pt为单位的值转换为px为单位的值
+ * @method transUnitToPx
+ * @param { String } 待转换的带单位的字符串
+ * @return { String } 转换为px为计量单位的值的字符串
+ * @example
+ * ```javascript
+ *
+ * //output: 500px
+ * console.log( UE.utils.transUnitToPx( '20cm' ) );
+ *
+ * //output: 27px
+ * console.log( UE.utils.transUnitToPx( '20pt' ) );
+ *
+ * ```
+ */
+function transUnitToPx(val) {
+    if (!/(pt|cm)/.test(val)) {
+        return val;
+    }
+    var unit;
+    val.replace(/([\d.]+)(\w+)/, function (str, v, u) {
+        val = v;
+        unit = u;
+    });
+    switch (unit) {
+        case 'cm':
+            val = parseFloat(val) * 25;
+            break;
+        case 'pt':
+            val = Math.round(parseFloat(val) * 96 / 72);
+    }
+    return val + (val ? 'px' : '');
+}
 
 /*
     粘贴信息的处理
