@@ -70,3 +70,72 @@ export function percentFormat(number) {
 export function isFunction(fn) {
     return typeof fn === 'function'
 }
+
+export function hasClass(element, className) {
+    if (!element) return;
+
+    return element.classList.contains(className.trim());
+}
+
+export function isComponent(element) {
+    return element && (/se-component/.test(element.className) || /^(TABLE|HR)$/.test(element.nodeName));
+}
+
+export function isWysiwygDiv(element) {
+    if (element && element.nodeType === 1 && (hasClass(element, 'se-wrapper-wysiwyg') || /^BODY$/i.test(element.nodeName))) return true;
+    return false;
+}
+
+export function isFormatElement(element) {
+    if (element && element.nodeType === 1 && /^(P|DIV|H[1-6]|LI|TH|TD|SECTION)$/i.test(element.nodeName) && !isComponent(element) && !isWysiwygDiv(element)) return true;
+    return false;
+}
+
+export function _HTMLConvertor(contents) {
+    const ec = {'&': '&amp;', '\u00A0': '&nbsp;', '\'': '&quot;', '<': '&lt;', '>': '&gt;'};
+    return contents.replace(/&|\u00A0|'|<|>/g, function (m) {
+        return (typeof ec[m] === 'string') ? ec[m] : m;
+    });
+}
+
+// 格式化节点
+export function convertHTMLForCodeView(html, indentSize) {
+    let returnHTML = '';
+    const reg = window.RegExp;
+    const brReg = new reg('^(BLOCKQUOTE|PRE|TABLE|THEAD|TBODY|TR|TH|TD|OL|UL|IMG|IFRAME|VIDEO|AUDIO|FIGURE|FIGCAPTION|HR|BR)$', 'i');
+    const wDoc = typeof html === 'string' ? document.createRange().createContextualFragment(html) : html;
+
+    indentSize *= 1;
+    indentSize = indentSize > 0 ? new window.Array(indentSize + 1).join(' ') : '';
+
+    (function recursionFunc (element, indent, lineBR) {
+        const children = element.childNodes;
+        const elementRegTest = brReg.test(element.nodeName);
+        const elementIndent = (elementRegTest ? indent : '');
+
+        for (let i = 0, len = children.length, node, br, nodeRegTest; i < len; i++) {
+            node = children[i];
+            nodeRegTest = brReg.test(node.nodeName);
+            br = nodeRegTest ? '\n' : '';
+            lineBR = isFormatElement(node) && !elementRegTest && !/^(TH|TD)$/i.test(element.nodeName) ? '\n' : '';
+
+            if (node.nodeType === 3) {
+                returnHTML += _HTMLConvertor((/^\n+$/.test(node.data) ? '' : node.data));
+                continue;
+            }
+
+            if (node.childNodes.length === 0) {
+                returnHTML += (/^(HR)$/i.test(node.nodeName) ? '\n' : '') + elementIndent + node.outerHTML + br;
+                continue;
+            }
+            
+            node.innerHTML = node.innerHTML;
+            const tag = node.nodeName.toLowerCase();
+            returnHTML += (lineBR || (elementRegTest ? '' : br)) + (elementIndent || nodeRegTest ? indent : '') + node.outerHTML.match(reg('<' + tag + '[^>]*>', 'i'))[0] + br;
+            recursionFunc(node, indent + indentSize, '');
+            returnHTML += (nodeRegTest ? indent : '') + '</' + tag + '>' + (lineBR || br || elementRegTest ? '\n' : '' || /^(TH|TD)$/i.test(node.nodeName) ? '\n' : '');
+        }
+    }(wDoc, '', '\n'));
+
+    return returnHTML.trim() + '\n';
+}

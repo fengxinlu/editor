@@ -12,6 +12,11 @@ import UploadImg from './upload/upload-img.js'
 import { arrForEach, objForEach } from '../util/util.js'
 import { getRandom } from '../util/util.js'
 
+// 引入codemirror
+import CodeMirror from '../util/codemirror.js'
+import xml from '../util/xml.js'
+xml(CodeMirror)
+
 // id，累加
 let editorId = 1
 
@@ -100,12 +105,11 @@ Editor.prototype = {
                 .css('width', '100%')
                 .css('height', '100%')
         // 源码编辑区域
-        $soundCodeElem = $('<textarea></textarea>')
+        $soundCodeElem = $('<textarea id="codeMirrorBox"></textarea>')
         $soundCodeElem.css('display', 'none')
                 .css('width', '100%')
                 .css('height', '100%')
                 .css('outline', 'none')
-                .css('line-height', '2.5')
 
         // 监听源码编辑区域事件
         $soundCodeElem[0].addEventListener('blur', function () { // 源码编辑器失焦时触发
@@ -144,6 +148,17 @@ Editor.prototype = {
         this.$soundCodeElem = $soundCodeElem
         this.toolbarElemId = toolbarElemId
         this.textElemId = textElemId
+        this.codeMirror = CodeMirror.fromTextArea(document.getElementById('codeMirrorBox'), {
+            indentUnit: 0, // 缩进
+            mode: 'xml',
+            htmlMode: true,
+            lineNumbers: true,
+            lineWrapping: true
+        })
+
+        // 设置源码编辑区域隐藏
+        const $codeMirrorContent = document.querySelector('.CodeMirror')
+        $codeMirrorContent.setAttribute('style', 'visibility: hidden')
 
         // 记录输入法的开始和结束
         let compositionEnd = true

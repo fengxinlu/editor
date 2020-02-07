@@ -3,7 +3,7 @@
 */
 import $ from '../../util/dom-core.js'
 import DropList from '../droplist.js'
-import { getSelectionRange, getSelectedHtml, setStyle } from '../../util/setStyle.js'
+import { getSelectionRange, setStyle } from '../../util/setStyle.js'
 
 // 构造函数
 function lineHeight(editor) {

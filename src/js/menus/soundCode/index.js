@@ -2,6 +2,7 @@
     menu - soundCode
 */
 import $ from '../../util/dom-core.js'
+import { convertHTMLForCodeView } from '../../util/util.js'
 
 // 构造函数
 function SoundCode(editor) {
@@ -23,19 +24,22 @@ SoundCode.prototype = {
 
     onClick: function(e) {
         const editor = this.editor
+        const codeMirror = editor.codeMirror
         const $textElem = editor.$textElem
-        const $soundCodeElem = editor.$soundCodeElem // 获取源码编辑器
-        const htmlEditFlag = $soundCodeElem[0].style.display // 记录编辑器是否处于编辑状态
-        const editorContent = editor.txt.html() // 获取文本源码
-        const editorValue = $soundCodeElem[0].value // 获取源码容器内源码value(string)
-        if (htmlEditFlag === 'none') {
-            $soundCodeElem[0].value = editorContent
-            $soundCodeElem.css('display', 'block')
+        const $soundCodeElem = document.querySelector('.CodeMirror') // 获取源码编辑器
+        const htmlEditFlag = $soundCodeElem.style.visibility // 记录编辑器是否处于编辑状态
+        const editorContent = convertHTMLForCodeView($textElem[0], 4) // 获取文本源码
+        const editorValue = codeMirror.getValue() // 获取源码容器内源码value(string)
+
+        if (htmlEditFlag === 'hidden') {
+            $soundCodeElem.setAttribute('style', 'visibility: visible')
+
+            codeMirror.setValue(editorContent)
             $textElem.css('display', 'none')
             this._menusControl(false)
         } else {
             editor.txt.html(editorValue)
-            $soundCodeElem.css('display', 'none')
+            $soundCodeElem.setAttribute('style', 'visibility: hidden')
             $textElem.css('display', 'block')
             this._menusControl(true)
         }

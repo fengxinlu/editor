@@ -62,7 +62,7 @@ gulp.task('script', () => {
         entry: './src/js/index.js',
         plugins: [
             // 对原始文件启动 eslint 检查，配置参见 ./.eslintrc.json
-            eslint(),
+            // eslint(),
             resolve(),
             babel({
                 exclude: 'node_modules/**' // only transpile our source code
