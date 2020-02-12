@@ -32,7 +32,7 @@ SoundCode.prototype = {
         const editorValue = codeMirror.getValue() // 获取源码容器内源码value(string)
 
         if (htmlEditFlag === 'hidden') {
-            $soundCodeElem.setAttribute('style', 'visibility: visible')
+            $soundCodeElem.setAttribute('style', 'visibility: visible; border-bottom: 1px solid #ccc')
 
             codeMirror.setValue(editorContent)
             $textElem.css('display', 'none')

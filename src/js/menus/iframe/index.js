@@ -1,5 +1,5 @@
 /*
-    menu - video
+    menu - iframe
 */
 import $ from '../../util/dom-core.js'
 import { getRandom } from '../../util/util.js'

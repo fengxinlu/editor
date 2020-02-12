@@ -77,5 +77,8 @@ MenuConstructors.clearFormat = ClearFormat
 import Iframe from './iframe/index.js'
 MenuConstructors.iframe = Iframe
 
+import Preview from './preview/index.js'
+MenuConstructors.preview = Preview
+
 // 吐出所有菜单集合
 export default MenuConstructors

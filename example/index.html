@@ -14,13 +14,12 @@
     <div class="body">
         <p>可访问 <a href="http://www.wangeditor.com/" target="_blank">wangEditor 官网</a> 了解更多内容</p>
         <div id="div1">
-            <p>欢迎使用 <b>wangEditor</b> 富文本编辑器</p>
         </div>
-        <div>安吉达基督教</div>
+        <!-- <div>安吉达基督教</div> -->
     </div>
 
     <!-- 引用js -->
-    <script type="text/javascript" src="/wangEditor.js"></script>
+    <script type="text/javascript" src="/wangEditor.min.js"></script>
     <script type="text/javascript">
         var E = window.wangEditor
         var editor = new E('#div1')
@@ -41,8 +40,7 @@
             'iframe', // 插入iframe
             'link', // 插入链接
             'clearFormat', // 清除格式
-            'undo', // 撤销
-            'redo', // 重复
+            'preview' // 预览
         ];
         editor.customConfig.zIndex = 100; // 编辑器menu z-index值
         editor.customConfig.uploadImgMaxLength = 5; // 限制一次最多上传 5 张图片
