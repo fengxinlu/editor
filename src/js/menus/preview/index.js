@@ -89,6 +89,10 @@ const previewStyle = `
         h5 {
             font-size: ${baseSize * 1.1}px;
         }
+        .video_iframe {
+            width: 100% !important;
+            height: 210px;
+        }
     </style>
 `
 
